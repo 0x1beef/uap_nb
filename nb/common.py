@@ -13,6 +13,8 @@ class FrameSequence:
         return self.num_frames
     def get_frame_time(self, frame):
         return frame / self.fps
+    def get_fps(self):
+        return self.fps
     
 def get_fps(video):
     command = f'ffprobe -v 0 -of csv=p=0 -select_streams v:0 -show_entries stream=r_frame_rate "{video}"'
