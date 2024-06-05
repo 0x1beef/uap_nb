@@ -5,6 +5,8 @@ def get_platform():
         return 'colab'
     elif os.getenv('KAGGLE_KERNEL_RUN_TYPE'):
         return 'kaggle'
+    elif os.getenv('SAGEMAKER_INTERNAL_IMAGE_URI'):
+        return 'sagemaker'
     else:
         return 'unknown'
     
@@ -20,6 +22,8 @@ def get_secret_huggingface_token():
     elif platform == 'kaggle':
         from kaggle_secrets import UserSecretsClient
         return UserSecretsClient().get_secret('huggingface_token')
+    elif os.getenv('HUGGINGFACE_TOKEN'):
+        return os.getenv('HUGGINGFACE_TOKEN')
     else:
         raise Exception('the Hugging Face token needs to be set')
 
