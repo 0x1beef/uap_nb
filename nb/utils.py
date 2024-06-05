@@ -156,8 +156,8 @@ def cv_cuda_worker_init(i):
 # each work function returns a list of results for those jobs, which are then concatenated.
 # the order in which the results from each worker appear in the final list of results is undefined.
 # the cv_cuda option also sets up OpenCV to use multiple GPUs, if present.
-def run_jobs_in_parallel(work_func, jobs, workers, partition_func = None, 
-        cv_cuda = False, backend = 'loky'):
+def run_jobs_in_parallel(work_func, jobs, workers, work_args = (),
+        partition_func = None, cv_cuda = False, backend = 'loky'):
     if partition_func == None:
         import numpy as np
         partition_func = np.array_split
@@ -165,7 +165,7 @@ def run_jobs_in_parallel(work_func, jobs, workers, partition_func = None,
     def worker(i):
         if cv_cuda:
             cv_cuda_worker_init(i)
-        ret = work_func(partitions[i])
+        ret = work_func(partitions[i], *work_args)
         import sys
         sys.stdout.flush() # show the output from child processes
         return ret

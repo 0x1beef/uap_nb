@@ -43,7 +43,8 @@ def gimbal_from_huggingface():
 
 # interpolate values in a dataframe's fields around the switch from WH to BH
 def gimbal_fix_wh_to_bh(df, fields, minus = 10, plus = 0):
+    last_white_hot = 370
     first_black_hot = 372
-    interp_range = range(first_black_hot - minus, first_black_hot + plus)
+    interp_range = range(last_white_hot - minus, first_black_hot + plus)
     import utils
     return utils.interpolate_rows(df, interp_range, fields)
