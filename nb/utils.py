@@ -144,21 +144,36 @@ def dict_to_obj(d):
     obj.__init__ = lambda self: self.__dict__.update(o.__dict__)
     return o
 
-# run a range of job indices in parallel, partitioning the work to a number of threads.
-# the function that performs the work for a specific thread receives a list of job indices.
-# each thread function returns a list of results for those jobs, which are then concatenated.
-# the order in which the results from each thread appear in the final list of results is undefined.
-def run_jobs_in_parallel(thread_func, jobs, threads, partition_func = None):
+# distribute the OpenCV CUDA work to multiple GPUs, if present
+def cv_cuda_worker_init(i):
+    import cv2
+    nr_devices = cv2.cuda.getCudaEnabledDeviceCount()
+    cv2.cuda.setDevice(i % nr_devices)
+
+# run a range of job indices in parallel, partitioning the work to a number of workers.
+# the workers could be processes (default) or threads, depending on the backend setting.
+# the workers run a function which receives a list of job indices, a work partition.
+# each work function returns a list of results for those jobs, which are then concatenated.
+# the order in which the results from each worker appear in the final list of results is undefined.
+# the cv_cuda option also sets up OpenCV to use multiple GPUs, if present.
+def run_jobs_in_parallel(work_func, jobs, workers, partition_func = None, 
+        cv_cuda = False, backend = 'loky'):
     if partition_func == None:
         import numpy as np
         partition_func = np.array_split
-    partitions = partition_func(jobs, threads)
-    def thread(i):
-        return thread_func(partitions[i])
-    import concurrent.futures
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(thread, i) for i in range(threads)]
-        results = [future.result() for future in concurrent.futures.as_completed(futures)]
+    partitions = partition_func(jobs, workers)
+    def worker(i):
+        if cv_cuda:
+            cv_cuda_worker_init(i)
+        ret = work_func(partitions[i])
+        import sys
+        sys.stdout.flush() # show the output from child processes
+        return ret
+    # the global interpreter lock can make it more efficient to use processes
+    from joblib import Parallel, delayed
+    results = Parallel(n_jobs = workers, backend = backend)(
+        delayed(worker)(i) for i in range(workers)
+    )
     return sum(results, [])
 
 # replace the rows in a dataframe's fields with interpolated values
