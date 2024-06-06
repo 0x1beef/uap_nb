@@ -28,18 +28,30 @@ def extract_frames(video, frames_dir, filters):
         output_frames = f'-vsync vfr -start_number 0 {frames_dir}/frame_%04d.png'
         os.system(f'ffmpeg -i "{video}" -vf "{filters}" {output_frames}')
 
-def gimbal_extract_frames(video, frames_dir):
+def flir1_extract_frames(video, frames_dir):
+    # note: crop can sometimes be off by a pixel, so make sure it's exact
+    extract_frames(video, frames_dir, filters='format=gray, crop=240:238:54:15:exact=1')
+
+def navy_2015_extract_frames(video, frames_dir):
     # note: crop can sometimes be off by a pixel, so make sure it's exact
     extract_frames(video, frames_dir, filters='format=gray, crop=428:428:104:27:exact=1')
 
-def gimbal_from_huggingface():
-    video = 'gimbal/2 - GIMBAL.wmv'
+def common_from_huggingface(dir, video_file, extract_frames_func):
+    video = f'{dir}/{video_file}'
     if not os.path.exists(video):
         import utils
         utils.download_from_huggingface(f'logicbear/uap/{video}')
-    frames_dir = 'gimbal'
-    gimbal_extract_frames(video, frames_dir)
-    return FrameSequence(frames_dir, get_fps(video))
+    extract_frames_func(video, dir)
+    return FrameSequence(dir, get_fps(video))
+
+def flir1_from_huggingface():
+    return common_from_huggingface('flir1', '1 - FLIR.mp4', flir1_extract_frames)
+
+def gimbal_from_huggingface():
+    return common_from_huggingface('gimbal', '2 - GIMBAL.wmv', navy_2015_extract_frames)
+
+def gofast_from_huggingface():
+    return common_from_huggingface('gofast', '3 - GOFAST.wmv', navy_2015_extract_frames)
 
 # interpolate values in a dataframe's fields around the switch from WH to BH
 def gimbal_fix_wh_to_bh(df, fields, minus = 10, plus = 0):
