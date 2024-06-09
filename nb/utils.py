@@ -12,7 +12,10 @@ def get_platform():
     
 def show_env_info():
     os.system('lsb_release -a')
-    #todo: show the version of the kaggle/colab image
+    platform = get_platform()
+    if platform == 'kaggle':
+        print('KAGGLE_DOCKER_IMAGE = ' + os.getenv('KAGGLE_DOCKER_IMAGE'))
+    #todo: show the version of the colab image
 
 def get_secret_huggingface_token():
     platform = get_platform()

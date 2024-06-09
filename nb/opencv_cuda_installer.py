@@ -9,9 +9,9 @@ def double_check_opencv_deps(cv_md5_file, opencv_lib='opencv/install/lib/libopen
     OPENCV_LIB=$1
     MD5_FILE=$2
     DEPS=`ldd $OPENCV_LIB | grep "=>" | sed "s/.*=> //" | sed "s/ (.*//"`
-    MD5=`md5sum -b $DEPS | md5sum | head -c 32`
-    NEED_MD5=`cat $MD5_FILE | md5sum | head -c 32`
-    if [ "$MD5" != "$NEED_MD5" ]; then
+    MD5_TMP=/tmp/opencv_cuda.md5
+    md5sum -b $DEPS > $MD5_TMP
+    if ! diff $MD5_FILE $MD5_TMP; then
         echo "A new OpenCV binary for this specific environment probably needs to be built." 
         exit 1
     fi
