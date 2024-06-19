@@ -64,3 +64,18 @@ def gimbal_fix_wh_to_bh(df, fields, minus = 10, plus = 0):
     interp_range = range(last_white_hot - minus, first_black_hot + plus)
     import utils
     return utils.interpolate_rows(df, interp_range, fields)
+
+def plot_frame_data(df, plot_func, x_range = None):
+    import matplotlib.pyplot as plt
+    if x_range is None:
+        x_range = slice(df.first_valid_index(), df.last_valid_index())
+    plot_func(df, x_range)
+    ax = plt.gca()
+    ax.set_xlabel('frames', loc='right')
+    fps = df.attrs['fps']
+    ax2 = ax.secondary_xaxis(location='top',
+        functions=(lambda frame: frame / fps, lambda time: time * fps))
+    ax2.set_xlabel('time [s]', loc='right')
+    plt.grid()
+    plt.legend()
+    plt.show()
