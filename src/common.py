@@ -79,3 +79,6 @@ def plot_frame_data(df, plot_func, x_range = None):
     plt.grid()
     plt.legend()
     plt.show()
+
+def get_frame_diff(frame, frame_diff_from, frame_diff_to, num_frames):
+    return int(frame_diff_from + frame * (frame_diff_to + 1 - frame_diff_from) / num_frames)
