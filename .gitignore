@@ -1,4 +1,10 @@
 __pycache__
+.idea
+
 data
 frames
 opencv
+opencv_contrib
+gimbal
+gofast
+flir1
